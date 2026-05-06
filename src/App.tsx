@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Check, Download, LoaderCircle, RotateCcw, Trophy } from "lucide-react"
+import { ArrowDown, ArrowUp, Check, Download, Eye, LoaderCircle, RotateCcw, Trophy } from "lucide-react"
 import { type CSSProperties, type DragEvent, useEffect, useRef, useState } from "react"
 import QRCode from "qrcode"
 import { toPng } from "html-to-image"
@@ -371,10 +371,17 @@ function App() {
     setStage("groups")
   }
 
+  const showShareGraphic = () => {
+    setStage("share")
+  }
+
   const exportImage = () => {
     if (isExporting) return
+    if (stage !== "share") {
+      showShareGraphic()
+      return
+    }
     setIsExporting(true)
-    setStage("share")
     setExportRequestId((id) => id + 1)
   }
 
@@ -397,8 +404,8 @@ function App() {
                 <RotateCcw size={16} /> 重置
               </Button>
               <Button variant="outline" onClick={exportImage} disabled={isExporting}>
-                {isExporting ? <LoaderCircle className="animate-spin" size={16} /> : <Download size={16} />}
-                {isExporting ? "正在导出" : "导出图片"}
+                {isExporting ? <LoaderCircle className="animate-spin" size={16} /> : stage === "share" ? <Download size={16} /> : <Eye size={16} />}
+                {isExporting ? "正在导出" : stage === "share" ? "导出图片" : "查看分享图"}
               </Button>
             </div>
           </div>
@@ -520,7 +527,7 @@ function App() {
             <div>
               <div className="section-heading">
                 <h2>分享图预览</h2>
-                <p>导出按钮会把下方图面保存为 PNG。</p>
+                <p>顶部导出按钮会把下方图面保存为 PNG。</p>
               </div>
               <ShareGraphic refEl={exportRef} ranking={ranking} thirdGroups={thirdGroups} winners={winners} qrCodeUrl={qrCodeUrl} />
             </div>
@@ -557,7 +564,7 @@ function App() {
                 <div className="mt-1 text-xl font-semibold">{completedMatches}/31</div>
               </div>
             </div>
-            <Button className="mt-4 w-full" onClick={() => setStage("share")}>
+            <Button className="mt-4 w-full" onClick={showShareGraphic}>
               查看分享图
             </Button>
             <p className="mt-4 text-xs leading-5 text-muted-foreground">{dataNote}</p>

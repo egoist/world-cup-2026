@@ -332,7 +332,6 @@ button {
   position: relative;
   width: 760px;
   max-width: none;
-  min-height: 1220px;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 0.08);
   border-radius: 0;
@@ -341,7 +340,7 @@ button {
     radial-gradient(circle at 13% 18%, rgb(0 203 180 / 0.16), transparent 18%),
     radial-gradient(circle at 86% 18%, rgb(255 50 116 / 0.2), transparent 18%),
     linear-gradient(180deg, #aa003c 0%, #7f002c 46%, #3a0018 100%);
-  padding: 48px 34px 36px;
+  padding: 48px 34px 28px;
   color: white;
 }
 
@@ -657,7 +656,7 @@ button {
 .poster-qr {
   width: 92px;
   height: 92px;
-  border: 8px solid white;
+  border: 5px solid white;
   background: white;
   box-shadow: 0 12px 30px rgb(26 0 12 / 0.32);
 }
