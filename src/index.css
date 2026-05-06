@@ -78,6 +78,18 @@ button {
   color: white;
 }
 
+.locale-select {
+  height: 26px;
+  min-width: 92px;
+  border-radius: 6px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  background: rgb(255 255 255 / 0.1);
+  padding: 0 8px;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .section-heading {
   margin-bottom: 16px;
 }

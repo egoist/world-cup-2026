@@ -1,9 +1,12 @@
 import { ArrowDown, ArrowUp, Check, Download, Eye, LoaderCircle, RotateCcw, Trophy } from "lucide-react"
+import type { TFunction } from "i18next"
 import { type CSSProperties, type DragEvent, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import QRCode from "qrcode"
 import { toPng } from "html-to-image"
 import { Button } from "@/components/ui/button"
-import { dataNote, groups, knockoutRounds, type GroupKey, type Match, type Slot, type Team } from "./data/worldCup2026"
+import { groups, knockoutRounds, type GroupKey, type Match, type Slot, type Team } from "./data/worldCup2026"
+import { isLocale, localeStorageKey, locales, type Locale } from "./i18n"
 import { cn } from "./lib/utils"
 
 type Ranking = Record<GroupKey, string[]>
@@ -25,19 +28,7 @@ const shareUrl = "https://wc2026.egoist.dev"
 const twemojiSvgBase = "/twemoji/svg"
 const teamMap = new Map(groups.flatMap((group) => group.teams.map((team) => [team.id, team])))
 const groupKeys = new Set(groups.map((group) => group.key))
-const stages: { id: Stage; label: string }[] = [
-  { id: "groups", label: "小组排序" },
-  { id: "thirds", label: "最佳第三" },
-  { id: "knockout", label: "淘汰赛" },
-  { id: "share", label: "分享图" },
-]
-const roundLabels = {
-  r32: "32 强",
-  r16: "16 强",
-  qf: "1/4 决赛",
-  sf: "半决赛",
-  final: "决赛",
-}
+const stages: { id: Stage }[] = [{ id: "groups" }, { id: "thirds" }, { id: "knockout" }, { id: "share" }]
 
 function isStage(value: unknown): value is Stage {
   return typeof value === "string" && stages.some((stage) => stage.id === value)
@@ -80,6 +71,28 @@ function loadSavedState(): Partial<SavedState> {
 
 function getTeam(id?: string) {
   return id ? teamMap.get(id) : undefined
+}
+
+function getTeamName(team: Team, locale: Locale) {
+  if (locale === "en") return team.name
+  if (locale === "ja") return team.ja
+  return team.zh
+}
+
+function getVenueName(venue: string, t: TFunction) {
+  return t(`venues.${venue}`, { defaultValue: venue })
+}
+
+function getSlotFallback(slot: Slot, t: TFunction) {
+  if (slot.type === "winner") return t("slotWinner", { match: slot.match })
+
+  if (slot.place === 3) {
+    const candidates = thirdSlotCandidates(slot)
+    const groupsLabel = candidates.length ? candidates.join("/") : slot.group
+    return t("slotGroupThird", { groups: groupsLabel })
+  }
+
+  return t(slot.place === 1 ? "slotGroupWinner" : "slotGroupRunnerUp", { group: slot.group })
 }
 
 function twemojiCodepoint(team: Team) {
@@ -160,9 +173,9 @@ function slotCandidates(slot: Slot, ranking: Ranking, thirdGroups: GroupKey[], w
   return groupKey ? [getRankedTeams(ranking, groupKey)[2]].filter(Boolean) : []
 }
 
-function slotLabel(slot: Slot, ranking: Ranking, thirdGroups: GroupKey[], winners: Winners) {
+function slotLabel(slot: Slot, ranking: Ranking, thirdGroups: GroupKey[], winners: Winners, locale: Locale, t: TFunction) {
   const team = slotCandidates(slot, ranking, thirdGroups, winners)[0]
-  return team ? team.zh : slot.label
+  return team ? getTeamName(team, locale) : getSlotFallback(slot, t)
 }
 
 function isMatchReady(match: Match, ranking: Ranking, thirdGroups: GroupKey[], winners: Winners) {
@@ -171,6 +184,8 @@ function isMatchReady(match: Match, ranking: Ranking, thirdGroups: GroupKey[], w
 
 function TeamRow({
   team,
+  locale,
+  t,
   index,
   canUp,
   canDown,
@@ -184,6 +199,8 @@ function TeamRow({
   onDragEnd,
 }: {
   team: Team
+  locale: Locale
+  t: TFunction
   index: number
   canUp: boolean
   canDown: boolean
@@ -216,13 +233,13 @@ function TeamRow({
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-muted text-sm font-semibold">{index + 1}</div>
       <FlagIcon team={team} className="team-row-flag" />
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-semibold">{team.zh}</div>
+        <div className="truncate text-sm font-semibold">{getTeamName(team, locale)}</div>
         <div className="text-xs text-muted-foreground">{team.code}</div>
       </div>
-      <button className="icon-button" disabled={!canUp} title="上移" onClick={() => onMove(-1)}>
+      <button className="icon-button" disabled={!canUp} title={t("moveUp")} onClick={() => onMove(-1)}>
         <ArrowUp size={13} />
       </button>
-      <button className="icon-button" disabled={!canDown} title="下移" onClick={() => onMove(1)}>
+      <button className="icon-button" disabled={!canDown} title={t("moveDown")} onClick={() => onMove(1)}>
         <ArrowDown size={13} />
       </button>
     </div>
@@ -230,6 +247,7 @@ function TeamRow({
 }
 
 function App() {
+  const { t, i18n } = useTranslation()
   const [savedState] = useState(loadSavedState)
   const [stage, setStage] = useState<Stage>(savedState.stage ?? "groups")
   const [ranking, setRanking] = useState<Ranking>(savedState.ranking ?? initialRanking)
@@ -241,6 +259,7 @@ function App() {
   const [exportRequestId, setExportRequestId] = useState(0)
   const [qrCodeUrl, setQrCodeUrl] = useState("")
   const exportRef = useRef<HTMLDivElement>(null)
+  const locale = isLocale(i18n.language) ? i18n.language : "en"
 
   const champion = getTeam(winners[104])
   const completedMatches = knockoutRounds.filter((match) => winners[match.id]).length
@@ -264,6 +283,12 @@ function App() {
       } satisfies SavedState),
     )
   }, [ranking, thirdGroups, winners, stage])
+
+  useEffect(() => {
+    localStorage.setItem(localeStorageKey, locale)
+    document.documentElement.lang = locales.find((item) => item.id === locale)?.htmlLang ?? "en"
+    document.title = t("metaTitle")
+  }, [locale, t])
 
   useEffect(() => {
     QRCode.toDataURL(shareUrl, {
@@ -399,12 +424,21 @@ function App() {
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded border border-white/25 bg-white/10 px-2.5 py-1 text-xs text-white/85">
-                2026 FIFA World Cup · 中文预测
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-2 rounded border border-white/25 bg-white/10 px-2.5 py-1 text-xs text-white/85">
+                  {t("heroKicker")}
+                </div>
+                <select className="locale-select" value={locale} onChange={(event) => void i18n.changeLanguage(event.target.value)} aria-label={t("language")}>
+                  {locales.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <h1 className="text-3xl font-semibold tracking-normal text-white md:text-5xl">世界杯 2026 预测图生成器</h1>
+              <h1 className="text-3xl font-semibold tracking-normal text-white md:text-5xl">{t("title")}</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-white/75">
-                按小组排名、最佳第三、淘汰赛逐步选择，生成可分享的 32 强到决赛预测图。
+                {t("subtitle")}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -414,11 +448,11 @@ function App() {
                 </a>
               </Button>
               <Button variant="secondary" onClick={reset}>
-                <RotateCcw size={16} /> 重置
+                <RotateCcw size={16} /> {t("reset")}
               </Button>
               <Button variant="outline" onClick={exportImage} disabled={isExporting}>
                 {isExporting ? <LoaderCircle className="animate-spin" size={16} /> : stage === "share" ? <Download size={16} /> : <Eye size={16} />}
-                {isExporting ? "正在导出" : stage === "share" ? "导出图片" : "查看分享图"}
+                {isExporting ? t("exporting") : stage === "share" ? t("exportImage") : t("viewShare")}
               </Button>
             </div>
           </div>
@@ -432,7 +466,7 @@ function App() {
                   onClick={() => setStage(item.id)}
                 >
                   <span className="stage-button-marker">{ready ? <Check size={14} strokeWidth={3} /> : index + 1}</span>
-                  {item.label}
+                  {t(`stages.${item.id}`)}
                 </button>
               )
             })}
@@ -445,20 +479,22 @@ function App() {
           {stage === "groups" && (
             <div>
               <div className="section-heading">
-                <h2>小组赛排名</h2>
-                <p>拖动球队调整每组 1-4 名；每组前两名自动进入 32 强。</p>
+                <h2>{t("groupsTitle")}</h2>
+                <p>{t("groupsDescription")}</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {groups.map((group) => (
                   <div key={group.key} className="panel">
                     <div className="mb-3 flex items-center justify-between">
-                      <h3 className="text-base font-semibold">{group.key} 组</h3>
+                      <h3 className="text-base font-semibold">{t("groupLabel", { group: group.key })}</h3>
                     </div>
                     <div className="grid gap-2">
                       {getRankedTeams(ranking, group.key).map((team, index) => (
                         <TeamRow
                           key={team.id}
                           team={team}
+                          locale={locale}
+                          t={t}
                           index={index}
                           canUp={index > 0}
                           canDown={index < 3}
@@ -500,8 +536,8 @@ function App() {
           {stage === "thirds" && (
             <div>
               <div className="section-heading">
-                <h2>最佳第三名</h2>
-                <p>选择 8 个小组第三名晋级。第三名落位会按当前槽位可接受的小组自动填入。</p>
+                <h2>{t("thirdsTitle")}</h2>
+                <p>{t("thirdsDescription")}</p>
               </div>
               <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-4">
                 {groups.map((group) => {
@@ -514,35 +550,35 @@ function App() {
                       disabled={!selected && thirdGroups.length >= 8}
                       onClick={() => toggleThird(group.key)}
                     >
-                      <span className="text-xs text-muted-foreground">{group.key} 组第三</span>
+                      <span className="text-xs text-muted-foreground">{t("groupThird", { group: group.key })}</span>
                       <FlagIcon team={third} className="third-card-flag" />
-                      <span className="font-semibold">{third.zh}</span>
-                      {selected && <span className="mt-2 text-xs">已晋级</span>}
+                      <span className="font-semibold">{getTeamName(third, locale)}</span>
+                      {selected && <span className="mt-2 text-xs">{t("advanced")}</span>}
                     </button>
                   )
                 })}
               </div>
-              <div className="mt-4 text-sm text-muted-foreground">已选择 {thirdGroups.length}/8</div>
+              <div className="mt-4 text-sm text-muted-foreground">{t("selectedCount", { count: thirdGroups.length })}</div>
             </div>
           )}
 
           {stage === "knockout" && (
             <div>
               <div className="section-heading">
-                <h2>淘汰赛逐轮选择</h2>
-                <p>按轮次选择每场胜者；后续轮次会自动解锁。</p>
+                <h2>{t("knockoutTitle")}</h2>
+                <p>{t("knockoutDescription")}</p>
               </div>
-              <KnockoutPicker ranking={ranking} thirdGroups={thirdGroups} winners={winners} onPick={pickWinner} />
+              <KnockoutPicker locale={locale} t={t} ranking={ranking} thirdGroups={thirdGroups} winners={winners} onPick={pickWinner} />
             </div>
           )}
 
           {stage === "share" && (
             <div>
               <div className="section-heading">
-                <h2>分享图预览</h2>
-                <p>顶部导出按钮会把下方图面保存为 PNG。</p>
+                <h2>{t("shareTitle")}</h2>
+                <p>{t("shareDescription")}</p>
               </div>
-              <ShareGraphic refEl={exportRef} ranking={ranking} thirdGroups={thirdGroups} winners={winners} qrCodeUrl={qrCodeUrl} />
+              <ShareGraphic locale={locale} t={t} refEl={exportRef} ranking={ranking} thirdGroups={thirdGroups} winners={winners} qrCodeUrl={qrCodeUrl} />
             </div>
           )}
         </div>
@@ -554,33 +590,33 @@ function App() {
                 <Trophy size={20} />
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">当前冠军预测</div>
+                <div className="text-sm text-muted-foreground">{t("championPrediction")}</div>
                 <div className="flex items-center gap-2 font-semibold">
                   {champion ? (
                     <>
                       <FlagIcon team={champion} className="summary-flag" />
-                      <span>{champion.zh}</span>
+                      <span>{getTeamName(champion, locale)}</span>
                     </>
                   ) : (
-                    "尚未决出"
+                    t("noChampion")
                   )}
                 </div>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-md bg-muted p-3">
-                <div className="text-muted-foreground">可选择场次</div>
+                <div className="text-muted-foreground">{t("readyMatches")}</div>
                 <div className="mt-1 text-xl font-semibold">{readyMatches.length}</div>
               </div>
               <div className="rounded-md bg-muted p-3">
-                <div className="text-muted-foreground">已完成</div>
+                <div className="text-muted-foreground">{t("completed")}</div>
                 <div className="mt-1 text-xl font-semibold">{completedMatches}/31</div>
               </div>
             </div>
             <Button className="mt-4 w-full" onClick={showShareGraphic}>
-              查看分享图
+              {t("viewShare")}
             </Button>
-            <p className="mt-4 text-xs leading-5 text-muted-foreground">{dataNote}</p>
+            <p className="mt-4 text-xs leading-5 text-muted-foreground">{t("dataNote")}</p>
           </div>
         </aside>
       </section>
@@ -591,11 +627,15 @@ function App() {
 const knockoutRoundOrder = ["r32", "r16", "qf", "sf", "final"] as const
 
 function KnockoutPicker({
+  locale,
+  t,
   ranking,
   thirdGroups,
   winners,
   onPick,
 }: {
+  locale: Locale
+  t: TFunction
   ranking: Ranking
   thirdGroups: GroupKey[]
   winners: Winners
@@ -609,7 +649,7 @@ function KnockoutPicker({
         return (
           <section key={round} className="knockout-round-section">
             <div className="knockout-round-heading">
-              <h3>{roundLabels[round]}</h3>
+              <h3>{t(`roundLabels.${round}`)}</h3>
               <span>
                 {completed}/{matches.length}
               </span>
@@ -618,6 +658,8 @@ function KnockoutPicker({
               {matches.map((match) => (
                 <KnockoutMatchCard
                   key={match.id}
+                  locale={locale}
+                  t={t}
                   match={match}
                   ranking={ranking}
                   thirdGroups={thirdGroups}
@@ -634,12 +676,16 @@ function KnockoutPicker({
 }
 
 function KnockoutMatchCard({
+  locale,
+  t,
   match,
   ranking,
   thirdGroups,
   winners,
   onPick,
 }: {
+  locale: Locale
+  t: TFunction
   match: Match
   ranking: Ranking
   thirdGroups: GroupKey[]
@@ -654,13 +700,13 @@ function KnockoutMatchCard({
   return (
     <article className={cn("knockout-match-card", !ready && "knockout-match-card-locked")}>
       <div className="knockout-match-meta">
-        <span>第 {match.id} 场</span>
-        <span>{match.venue}</span>
+        <span>{t("matchNumber", { id: match.id })}</span>
+        <span>{getVenueName(match.venue, t)}</span>
       </div>
       <div className="knockout-team-choices">
         {[
-          { team: leftTeam, label: slotLabel(match.left, ranking, thirdGroups, winners) },
-          { team: rightTeam, label: slotLabel(match.right, ranking, thirdGroups, winners) },
+          { team: leftTeam, label: slotLabel(match.left, ranking, thirdGroups, winners, locale, t) },
+          { team: rightTeam, label: slotLabel(match.right, ranking, thirdGroups, winners, locale, t) },
         ].map((item, index) => {
           const selected = Boolean(item.team && winner && item.team.id === winner.id)
           return (
@@ -672,15 +718,15 @@ function KnockoutMatchCard({
             >
               <span className="knockout-team-main">
                 {item.team ? <FlagIcon team={item.team} className="knockout-team-flag" /> : <span>·</span>}
-                <span>{item.team?.zh ?? item.label}</span>
+                <span>{item.team ? getTeamName(item.team, locale) : item.label}</span>
               </span>
               {selected ? (
                 <span className="knockout-winner-badge">
                   <Trophy size={13} />
-                  胜出
+                  {t("winner")}
                 </span>
               ) : (
-                <span className="knockout-team-code">{item.team?.code ?? "待定"}</span>
+                <span className="knockout-team-code">{item.team?.code ?? t("pending")}</span>
               )}
             </button>
           )
@@ -691,12 +737,16 @@ function KnockoutMatchCard({
 }
 
 function ShareGraphic({
+  locale,
+  t,
   refEl,
   ranking,
   thirdGroups,
   winners,
   qrCodeUrl,
 }: {
+  locale: Locale
+  t: TFunction
   refEl: React.RefObject<HTMLDivElement | null>
   ranking: Ranking
   thirdGroups: GroupKey[]
@@ -711,19 +761,19 @@ function ShareGraphic({
       <div className="poster-ornament poster-ornament-right" aria-hidden="true" />
       <header className="poster-header">
         <div className="poster-kicker">2026 FIFA WORLD CUP</div>
-        <h2>冠军之路</h2>
-        <p>我的世界杯预测是这样</p>
+        <h2>{t("posterTitle")}</h2>
+        <p>{t("posterSubtitle")}</p>
       </header>
-      <section className="poster-bracket" aria-label="世界杯 2026 淘汰赛预测图">
-        <PosterBracketGraph ranking={ranking} thirdGroups={thirdGroups} winners={winners} />
+      <section className="poster-bracket" aria-label={t("posterAriaLabel")}>
+        <PosterBracketGraph locale={locale} ranking={ranking} thirdGroups={thirdGroups} winners={winners} />
         <div className="poster-champion">
           {champion ? (
             <div className="poster-champion-team">
               <FlagIcon team={champion} className="poster-champion-flag" />
-              <span className="poster-champion-name">{champion.zh}</span>
+              <span className="poster-champion-name">{getTeamName(champion, locale)}</span>
             </div>
           ) : (
-            <div className="poster-champion-empty">待选择</div>
+            <div className="poster-champion-empty">{t("posterEmpty")}</div>
           )}
           <div className="poster-champion-label">CHAMPIONS</div>
         </div>
@@ -732,9 +782,9 @@ function ShareGraphic({
         </div>
       </section>
       <footer className="poster-footer">
-        {qrCodeUrl ? <img className="poster-qr" src={qrCodeUrl} alt="打开 wc2026.egoist.dev 的二维码" /> : <div className="poster-qr" aria-hidden="true" />}
+        {qrCodeUrl ? <img className="poster-qr" src={qrCodeUrl} alt={t("posterQrAlt")} /> : <div className="poster-qr" aria-hidden="true" />}
         <div>
-          <div className="poster-footer-main">扫描生成你的冠军之路</div>
+          <div className="poster-footer-main">{t("posterFooterMain")}</div>
           <div className="poster-footer-sub">WORLD CUP 2026 PREDICTOR</div>
           <div className="poster-footer-url">{shareUrl}</div>
         </div>
@@ -787,7 +837,7 @@ const posterMatchIds = {
   },
 }
 
-function PosterBracketGraph({ ranking, thirdGroups, winners }: { ranking: Ranking; thirdGroups: GroupKey[]; winners: Winners }) {
+function PosterBracketGraph({ locale, ranking, thirdGroups, winners }: { locale: Locale; ranking: Ranking; thirdGroups: GroupKey[]; winners: Winners }) {
   const matches = new Map(knockoutRounds.map((match) => [match.id, match]))
   return (
     <div className="poster-bracket-board">
@@ -795,14 +845,15 @@ function PosterBracketGraph({ ranking, thirdGroups, winners }: { ranking: Rankin
       <PosterLines side="right" />
       <PosterFinalLines winners={winners} />
       <PosterActiveLines ranking={ranking} thirdGroups={thirdGroups} winners={winners} />
-      <PosterBracketSide side="left" matchIds={posterMatchIds.left} matches={matches} ranking={ranking} thirdGroups={thirdGroups} winners={winners} />
-      <PosterBracketSide side="right" matchIds={posterMatchIds.right} matches={matches} ranking={ranking} thirdGroups={thirdGroups} winners={winners} />
+      <PosterBracketSide side="left" locale={locale} matchIds={posterMatchIds.left} matches={matches} ranking={ranking} thirdGroups={thirdGroups} winners={winners} />
+      <PosterBracketSide side="right" locale={locale} matchIds={posterMatchIds.right} matches={matches} ranking={ranking} thirdGroups={thirdGroups} winners={winners} />
     </div>
   )
 }
 
 function PosterBracketSide({
   side,
+  locale,
   matchIds,
   matches,
   ranking,
@@ -810,6 +861,7 @@ function PosterBracketSide({
   winners,
 }: {
   side: "left" | "right"
+  locale: Locale
   matchIds: { r32: number[]; r16: number[]; qf: number[]; sf: number[] }
   matches: Map<number, Match>
   ranking: Ranking
@@ -825,16 +877,16 @@ function PosterBracketSide({
   return (
     <>
       {matchIds.r32.map((id, index) => (
-        <PosterMatch key={id} side={side} match={matches.get(id)!} ranking={ranking} thirdGroups={thirdGroups} winners={winners} style={nodeStyle(0, posterRoundY.r32[index])} showPair />
+        <PosterMatch key={id} side={side} locale={locale} match={matches.get(id)!} ranking={ranking} thirdGroups={thirdGroups} winners={winners} style={nodeStyle(0, posterRoundY.r32[index])} showPair />
       ))}
       {matchIds.r16.map((id, index) => (
-        <PosterMatch key={id} side={side} match={matches.get(id)!} ranking={ranking} thirdGroups={thirdGroups} winners={winners} style={nodeStyle(1, posterRoundY.r16[index])} />
+        <PosterMatch key={id} side={side} locale={locale} match={matches.get(id)!} ranking={ranking} thirdGroups={thirdGroups} winners={winners} style={nodeStyle(1, posterRoundY.r16[index])} />
       ))}
       {matchIds.qf.map((id, index) => (
-        <PosterMatch key={id} side={side} match={matches.get(id)!} ranking={ranking} thirdGroups={thirdGroups} winners={winners} style={nodeStyle(2, posterRoundY.qf[index])} />
+        <PosterMatch key={id} side={side} locale={locale} match={matches.get(id)!} ranking={ranking} thirdGroups={thirdGroups} winners={winners} style={nodeStyle(2, posterRoundY.qf[index])} />
       ))}
       {matchIds.sf.map((id, index) => (
-        <PosterMatch key={id} side={side} match={matches.get(id)!} ranking={ranking} thirdGroups={thirdGroups} winners={winners} style={nodeStyle(3, posterRoundY.sf[index])} />
+        <PosterMatch key={id} side={side} locale={locale} match={matches.get(id)!} ranking={ranking} thirdGroups={thirdGroups} winners={winners} style={nodeStyle(3, posterRoundY.sf[index])} />
       ))}
     </>
   )
@@ -842,6 +894,7 @@ function PosterBracketSide({
 
 function PosterMatch({
   side,
+  locale,
   match,
   ranking,
   thirdGroups,
@@ -850,6 +903,7 @@ function PosterMatch({
   showPair,
 }: {
   side: "left" | "right"
+  locale: Locale
   match: Match
   ranking: Ranking
   thirdGroups: GroupKey[]
@@ -868,7 +922,7 @@ function PosterMatch({
         teams.map((team) => (
           <div key={team.id} className={cn("poster-team", !showPair && "poster-team-flag-only", team.id === winner?.id && "poster-team-winner")}>
             <FlagIcon team={team} className="poster-team-flag" />
-            {showPair && <span>{team.zh}</span>}
+            {showPair && <span>{getTeamName(team, locale)}</span>}
           </div>
         ))
       ) : (
@@ -1049,11 +1103,15 @@ const roundY = {
 }
 
 function BracketGraph({
+  locale,
+  t,
   ranking,
   thirdGroups,
   winners,
   onPick,
 }: {
+  locale: Locale
+  t: TFunction
   ranking: Ranking
   thirdGroups: GroupKey[]
   winners: Winners
@@ -1062,20 +1120,22 @@ function BracketGraph({
   return (
     <>
       <div className="bracket-rounds" aria-hidden="true">
-        <span>32 强</span>
-        <span>16 强</span>
-        <span>1/4 决赛</span>
-        <span>半决赛</span>
-        <span>决赛</span>
-        <span>半决赛</span>
-        <span>1/4 决赛</span>
-        <span>16 强</span>
-        <span>32 强</span>
+        <span>{t("roundLabels.r32")}</span>
+        <span>{t("roundLabels.r16")}</span>
+        <span>{t("roundLabels.qf")}</span>
+        <span>{t("roundLabels.sf")}</span>
+        <span>{t("roundLabels.final")}</span>
+        <span>{t("roundLabels.sf")}</span>
+        <span>{t("roundLabels.qf")}</span>
+        <span>{t("roundLabels.r16")}</span>
+        <span>{t("roundLabels.r32")}</span>
       </div>
       <div className={cn("bracket-board", onPick && "bracket-board-interactive")}>
         <BracketHalf
           side="left"
-          title="左半区"
+          title={t("leftHalf")}
+          locale={locale}
+          t={t}
           matchIds={{
             r32: [74, 77, 73, 75, 83, 84, 81, 82],
             r16: [89, 90, 93, 94],
@@ -1099,11 +1159,15 @@ function BracketGraph({
             winners={winners}
             onPick={onPick}
             className="final-node"
+            locale={locale}
+            t={t}
           />
         </div>
         <BracketHalf
           side="right"
-          title="右半区"
+          title={t("rightHalf")}
+          locale={locale}
+          t={t}
           matchIds={{
             r32: [76, 78, 79, 80, 86, 88, 85, 87],
             r16: [91, 92, 95, 96],
@@ -1123,6 +1187,8 @@ function BracketGraph({
 function BracketHalf({
   side,
   title,
+  locale,
+  t,
   matchIds,
   ranking,
   thirdGroups,
@@ -1131,6 +1197,8 @@ function BracketHalf({
 }: {
   side: "left" | "right"
   title: string
+  locale: Locale
+  t: TFunction
   matchIds: { r32: number[]; r16: number[]; qf: number[]; sf: number[] }
   ranking: Ranking
   thirdGroups: GroupKey[]
@@ -1148,6 +1216,8 @@ function BracketHalf({
         <BracketNode
           key={id}
           match={matches.get(id)!}
+          locale={locale}
+          t={t}
           ranking={ranking}
           thirdGroups={thirdGroups}
           winners={winners}
@@ -1159,6 +1229,8 @@ function BracketHalf({
         <BracketNode
           key={id}
           match={matches.get(id)!}
+          locale={locale}
+          t={t}
           ranking={ranking}
           thirdGroups={thirdGroups}
           winners={winners}
@@ -1170,6 +1242,8 @@ function BracketHalf({
         <BracketNode
           key={id}
           match={matches.get(id)!}
+          locale={locale}
+          t={t}
           ranking={ranking}
           thirdGroups={thirdGroups}
           winners={winners}
@@ -1181,6 +1255,8 @@ function BracketHalf({
         <BracketNode
           key={id}
           match={matches.get(id)!}
+          locale={locale}
+          t={t}
           ranking={ranking}
           thirdGroups={thirdGroups}
           winners={winners}
@@ -1237,20 +1313,24 @@ function BracketLines({ side }: { side: "left" | "right" }) {
 
 function BracketNode({
   match,
+  locale,
   ranking,
   thirdGroups,
   winners,
   onPick,
   className,
   style,
+  t,
 }: {
   match: Match
+  locale: Locale
   ranking: Ranking
   thirdGroups: GroupKey[]
   winners: Winners
   onPick?: (matchId: number, teamId: string) => void
   className?: string
   style?: CSSProperties
+  t: TFunction
 }) {
   const leftTeam = slotCandidates(match.left, ranking, thirdGroups, winners)[0]
   const rightTeam = slotCandidates(match.right, ranking, thirdGroups, winners)[0]
@@ -1263,8 +1343,8 @@ function BracketNode({
       <div className="bracket-node-meta">#{match.id}</div>
       <div className="bracket-node-teams">
       {[
-        { team: leftTeam, label: leftTeam?.zh ?? match.left.label },
-        { team: rightTeam, label: rightTeam?.zh ?? match.right.label },
+        { team: leftTeam, label: leftTeam ? getTeamName(leftTeam, locale) : getSlotFallback(match.left, t) },
+        { team: rightTeam, label: rightTeam ? getTeamName(rightTeam, locale) : getSlotFallback(match.right, t) },
       ].map((item, index) => {
         const selected = item.team?.id === winner?.id
         return (

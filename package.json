@@ -16,10 +16,12 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "html-to-image": "^1.11.13",
+    "i18next": "^26.0.9",
     "lucide-react": "^1.14.0",
     "qrcode": "^1.5.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-i18next": "^17.0.6",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.4",
     "vite": "^8.0.10"

@@ -16,6 +16,7 @@ export type Team = {
   id: string
   name: string
   zh: string
+  ja: string
   code: string
   flag: string
 }
@@ -42,109 +43,109 @@ export const groups: Group[] = [
   {
     key: "A",
     teams: [
-      { id: "mexico", name: "Mexico", zh: "墨西哥", code: "MEX", flag: "🇲🇽" },
-      { id: "south-africa", name: "South Africa", zh: "南非", code: "RSA", flag: "🇿🇦" },
-      { id: "south-korea", name: "South Korea", zh: "韩国", code: "KOR", flag: "🇰🇷" },
-      { id: "czechia", name: "Czechia", zh: "捷克", code: "CZE", flag: "🇨🇿" },
+      { id: "mexico", name: "Mexico", zh: "墨西哥", ja: "メキシコ", code: "MEX", flag: "🇲🇽" },
+      { id: "south-africa", name: "South Africa", zh: "南非", ja: "南アフリカ", code: "RSA", flag: "🇿🇦" },
+      { id: "south-korea", name: "South Korea", zh: "韩国", ja: "韓国", code: "KOR", flag: "🇰🇷" },
+      { id: "czechia", name: "Czechia", zh: "捷克", ja: "チェコ", code: "CZE", flag: "🇨🇿" },
     ],
   },
   {
     key: "B",
     teams: [
-      { id: "canada", name: "Canada", zh: "加拿大", code: "CAN", flag: "🇨🇦" },
-      { id: "switzerland", name: "Switzerland", zh: "瑞士", code: "SUI", flag: "🇨🇭" },
-      { id: "qatar", name: "Qatar", zh: "卡塔尔", code: "QAT", flag: "🇶🇦" },
-      { id: "bosnia-herzegovina", name: "Bosnia and Herzegovina", zh: "波黑", code: "BIH", flag: "🇧🇦" },
+      { id: "canada", name: "Canada", zh: "加拿大", ja: "カナダ", code: "CAN", flag: "🇨🇦" },
+      { id: "switzerland", name: "Switzerland", zh: "瑞士", ja: "スイス", code: "SUI", flag: "🇨🇭" },
+      { id: "qatar", name: "Qatar", zh: "卡塔尔", ja: "カタール", code: "QAT", flag: "🇶🇦" },
+      { id: "bosnia-herzegovina", name: "Bosnia and Herzegovina", zh: "波黑", ja: "ボスニア・ヘルツェゴビナ", code: "BIH", flag: "🇧🇦" },
     ],
   },
   {
     key: "C",
     teams: [
-      { id: "brazil", name: "Brazil", zh: "巴西", code: "BRA", flag: "🇧🇷" },
-      { id: "morocco", name: "Morocco", zh: "摩洛哥", code: "MAR", flag: "🇲🇦" },
-      { id: "haiti", name: "Haiti", zh: "海地", code: "HAI", flag: "🇭🇹" },
-      { id: "scotland", name: "Scotland", zh: "苏格兰", code: "SCO", flag: "🏴" },
+      { id: "brazil", name: "Brazil", zh: "巴西", ja: "ブラジル", code: "BRA", flag: "🇧🇷" },
+      { id: "morocco", name: "Morocco", zh: "摩洛哥", ja: "モロッコ", code: "MAR", flag: "🇲🇦" },
+      { id: "haiti", name: "Haiti", zh: "海地", ja: "ハイチ", code: "HAI", flag: "🇭🇹" },
+      { id: "scotland", name: "Scotland", zh: "苏格兰", ja: "スコットランド", code: "SCO", flag: "🏴" },
     ],
   },
   {
     key: "D",
     teams: [
-      { id: "united-states", name: "United States", zh: "美国", code: "USA", flag: "🇺🇸" },
-      { id: "paraguay", name: "Paraguay", zh: "巴拉圭", code: "PAR", flag: "🇵🇾" },
-      { id: "australia", name: "Australia", zh: "澳大利亚", code: "AUS", flag: "🇦🇺" },
-      { id: "turkiye", name: "Turkiye", zh: "土耳其", code: "TUR", flag: "🇹🇷" },
+      { id: "united-states", name: "United States", zh: "美国", ja: "アメリカ", code: "USA", flag: "🇺🇸" },
+      { id: "paraguay", name: "Paraguay", zh: "巴拉圭", ja: "パラグアイ", code: "PAR", flag: "🇵🇾" },
+      { id: "australia", name: "Australia", zh: "澳大利亚", ja: "オーストラリア", code: "AUS", flag: "🇦🇺" },
+      { id: "turkiye", name: "Turkiye", zh: "土耳其", ja: "トルコ", code: "TUR", flag: "🇹🇷" },
     ],
   },
   {
     key: "E",
     teams: [
-      { id: "germany", name: "Germany", zh: "德国", code: "GER", flag: "🇩🇪" },
-      { id: "curacao", name: "Curacao", zh: "库拉索", code: "CUW", flag: "🇨🇼" },
-      { id: "ivory-coast", name: "Ivory Coast", zh: "科特迪瓦", code: "CIV", flag: "🇨🇮" },
-      { id: "ecuador", name: "Ecuador", zh: "厄瓜多尔", code: "ECU", flag: "🇪🇨" },
+      { id: "germany", name: "Germany", zh: "德国", ja: "ドイツ", code: "GER", flag: "🇩🇪" },
+      { id: "curacao", name: "Curacao", zh: "库拉索", ja: "キュラソー", code: "CUW", flag: "🇨🇼" },
+      { id: "ivory-coast", name: "Ivory Coast", zh: "科特迪瓦", ja: "コートジボワール", code: "CIV", flag: "🇨🇮" },
+      { id: "ecuador", name: "Ecuador", zh: "厄瓜多尔", ja: "エクアドル", code: "ECU", flag: "🇪🇨" },
     ],
   },
   {
     key: "F",
     teams: [
-      { id: "netherlands", name: "Netherlands", zh: "荷兰", code: "NED", flag: "🇳🇱" },
-      { id: "japan", name: "Japan", zh: "日本", code: "JPN", flag: "🇯🇵" },
-      { id: "tunisia", name: "Tunisia", zh: "突尼斯", code: "TUN", flag: "🇹🇳" },
-      { id: "sweden", name: "Sweden", zh: "瑞典", code: "SWE", flag: "🇸🇪" },
+      { id: "netherlands", name: "Netherlands", zh: "荷兰", ja: "オランダ", code: "NED", flag: "🇳🇱" },
+      { id: "japan", name: "Japan", zh: "日本", ja: "日本", code: "JPN", flag: "🇯🇵" },
+      { id: "tunisia", name: "Tunisia", zh: "突尼斯", ja: "チュニジア", code: "TUN", flag: "🇹🇳" },
+      { id: "sweden", name: "Sweden", zh: "瑞典", ja: "スウェーデン", code: "SWE", flag: "🇸🇪" },
     ],
   },
   {
     key: "G",
     teams: [
-      { id: "belgium", name: "Belgium", zh: "比利时", code: "BEL", flag: "🇧🇪" },
-      { id: "egypt", name: "Egypt", zh: "埃及", code: "EGY", flag: "🇪🇬" },
-      { id: "iran", name: "Iran", zh: "伊朗", code: "IRN", flag: "🇮🇷" },
-      { id: "new-zealand", name: "New Zealand", zh: "新西兰", code: "NZL", flag: "🇳🇿" },
+      { id: "belgium", name: "Belgium", zh: "比利时", ja: "ベルギー", code: "BEL", flag: "🇧🇪" },
+      { id: "egypt", name: "Egypt", zh: "埃及", ja: "エジプト", code: "EGY", flag: "🇪🇬" },
+      { id: "iran", name: "Iran", zh: "伊朗", ja: "イラン", code: "IRN", flag: "🇮🇷" },
+      { id: "new-zealand", name: "New Zealand", zh: "新西兰", ja: "ニュージーランド", code: "NZL", flag: "🇳🇿" },
     ],
   },
   {
     key: "H",
     teams: [
-      { id: "spain", name: "Spain", zh: "西班牙", code: "ESP", flag: "🇪🇸" },
-      { id: "cape-verde", name: "Cape Verde", zh: "佛得角", code: "CPV", flag: "🇨🇻" },
-      { id: "saudi-arabia", name: "Saudi Arabia", zh: "沙特阿拉伯", code: "KSA", flag: "🇸🇦" },
-      { id: "uruguay", name: "Uruguay", zh: "乌拉圭", code: "URU", flag: "🇺🇾" },
+      { id: "spain", name: "Spain", zh: "西班牙", ja: "スペイン", code: "ESP", flag: "🇪🇸" },
+      { id: "cape-verde", name: "Cape Verde", zh: "佛得角", ja: "カーボベルデ", code: "CPV", flag: "🇨🇻" },
+      { id: "saudi-arabia", name: "Saudi Arabia", zh: "沙特阿拉伯", ja: "サウジアラビア", code: "KSA", flag: "🇸🇦" },
+      { id: "uruguay", name: "Uruguay", zh: "乌拉圭", ja: "ウルグアイ", code: "URU", flag: "🇺🇾" },
     ],
   },
   {
     key: "I",
     teams: [
-      { id: "france", name: "France", zh: "法国", code: "FRA", flag: "🇫🇷" },
-      { id: "senegal", name: "Senegal", zh: "塞内加尔", code: "SEN", flag: "🇸🇳" },
-      { id: "norway", name: "Norway", zh: "挪威", code: "NOR", flag: "🇳🇴" },
-      { id: "iraq", name: "Iraq", zh: "伊拉克", code: "IRQ", flag: "🇮🇶" },
+      { id: "france", name: "France", zh: "法国", ja: "フランス", code: "FRA", flag: "🇫🇷" },
+      { id: "senegal", name: "Senegal", zh: "塞内加尔", ja: "セネガル", code: "SEN", flag: "🇸🇳" },
+      { id: "norway", name: "Norway", zh: "挪威", ja: "ノルウェー", code: "NOR", flag: "🇳🇴" },
+      { id: "iraq", name: "Iraq", zh: "伊拉克", ja: "イラク", code: "IRQ", flag: "🇮🇶" },
     ],
   },
   {
     key: "J",
     teams: [
-      { id: "argentina", name: "Argentina", zh: "阿根廷", code: "ARG", flag: "🇦🇷" },
-      { id: "algeria", name: "Algeria", zh: "阿尔及利亚", code: "ALG", flag: "🇩🇿" },
-      { id: "austria", name: "Austria", zh: "奥地利", code: "AUT", flag: "🇦🇹" },
-      { id: "jordan", name: "Jordan", zh: "约旦", code: "JOR", flag: "🇯🇴" },
+      { id: "argentina", name: "Argentina", zh: "阿根廷", ja: "アルゼンチン", code: "ARG", flag: "🇦🇷" },
+      { id: "algeria", name: "Algeria", zh: "阿尔及利亚", ja: "アルジェリア", code: "ALG", flag: "🇩🇿" },
+      { id: "austria", name: "Austria", zh: "奥地利", ja: "オーストリア", code: "AUT", flag: "🇦🇹" },
+      { id: "jordan", name: "Jordan", zh: "约旦", ja: "ヨルダン", code: "JOR", flag: "🇯🇴" },
     ],
   },
   {
     key: "K",
     teams: [
-      { id: "portugal", name: "Portugal", zh: "葡萄牙", code: "POR", flag: "🇵🇹" },
-      { id: "uzbekistan", name: "Uzbekistan", zh: "乌兹别克斯坦", code: "UZB", flag: "🇺🇿" },
-      { id: "colombia", name: "Colombia", zh: "哥伦比亚", code: "COL", flag: "🇨🇴" },
-      { id: "dr-congo", name: "DR Congo", zh: "民主刚果", code: "COD", flag: "🇨🇩" },
+      { id: "portugal", name: "Portugal", zh: "葡萄牙", ja: "ポルトガル", code: "POR", flag: "🇵🇹" },
+      { id: "uzbekistan", name: "Uzbekistan", zh: "乌兹别克斯坦", ja: "ウズベキスタン", code: "UZB", flag: "🇺🇿" },
+      { id: "colombia", name: "Colombia", zh: "哥伦比亚", ja: "コロンビア", code: "COL", flag: "🇨🇴" },
+      { id: "dr-congo", name: "DR Congo", zh: "民主刚果", ja: "コンゴ民主共和国", code: "COD", flag: "🇨🇩" },
     ],
   },
   {
     key: "L",
     teams: [
-      { id: "england", name: "England", zh: "英格兰", code: "ENG", flag: "🏴" },
-      { id: "croatia", name: "Croatia", zh: "克罗地亚", code: "CRO", flag: "🇭🇷" },
-      { id: "ghana", name: "Ghana", zh: "加纳", code: "GHA", flag: "🇬🇭" },
-      { id: "panama", name: "Panama", zh: "巴拿马", code: "PAN", flag: "🇵🇦" },
+      { id: "england", name: "England", zh: "英格兰", ja: "イングランド", code: "ENG", flag: "🏴" },
+      { id: "croatia", name: "Croatia", zh: "克罗地亚", ja: "クロアチア", code: "CRO", flag: "🇭🇷" },
+      { id: "ghana", name: "Ghana", zh: "加纳", ja: "ガーナ", code: "GHA", flag: "🇬🇭" },
+      { id: "panama", name: "Panama", zh: "巴拿马", ja: "パナマ", code: "PAN", flag: "🇵🇦" },
     ],
   },
 ]
