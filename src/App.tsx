@@ -719,14 +719,14 @@ const posterRoundY = {
 }
 const posterMatchIds = {
   left: {
-    r32: [74, 77, 73, 75, 76, 78, 79, 80],
-    r16: [89, 90, 91, 92],
+    r32: [74, 77, 73, 75, 83, 84, 81, 82],
+    r16: [89, 90, 93, 94],
     qf: [97, 98],
     sf: [101],
   },
   right: {
-    r32: [81, 82, 83, 84, 85, 86, 87, 88],
-    r16: [93, 94, 95, 96],
+    r32: [76, 78, 79, 80, 86, 88, 85, 87],
+    r16: [91, 92, 95, 96],
     qf: [99, 100],
     sf: [102],
   },
@@ -960,12 +960,12 @@ function PosterActiveLines({ ranking, thirdGroups, winners }: { ranking: Ranking
       return
     }
 
-    for (const slot of [match.left, match.right]) {
-      if (slot.type !== "winner" || winners[slot.match] !== winnerId) continue
-      const path = getPosterPath(slot.match, matchId)
-      if (path) paths.push(path)
-      collect(slot.match)
-    }
+    const advancingSlot = [match.left, match.right].find((slot) => slot.type === "winner" && winners[slot.match] === winnerId)
+    if (advancingSlot?.type !== "winner") return
+
+    const path = getPosterPath(advancingSlot.match, matchId)
+    if (path) paths.push(path)
+    collect(advancingSlot.match)
   }
 
   collect(104)
@@ -1022,8 +1022,8 @@ function BracketGraph({
           side="left"
           title="左半区"
           matchIds={{
-            r32: [74, 77, 73, 75, 76, 78, 79, 80],
-            r16: [89, 90, 91, 92],
+            r32: [74, 77, 73, 75, 83, 84, 81, 82],
+            r16: [89, 90, 93, 94],
             qf: [97, 98],
             sf: [101],
           }}
@@ -1050,8 +1050,8 @@ function BracketGraph({
           side="right"
           title="右半区"
           matchIds={{
-            r32: [81, 82, 83, 84, 85, 86, 87, 88],
-            r16: [93, 94, 95, 96],
+            r32: [76, 78, 79, 80, 86, 88, 85, 87],
+            r16: [91, 92, 95, 96],
             qf: [99, 100],
             sf: [102],
           }}

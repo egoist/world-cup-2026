@@ -508,7 +508,12 @@ button {
 }
 
 .poster-match-right .poster-team {
-  justify-content: flex-end;
+  justify-content: center;
+}
+
+.poster-match-right .poster-team:not(.poster-team-flag-only) {
+  width: 160px;
+  justify-content: flex-start;
 }
 
 .poster-team span:last-child {
