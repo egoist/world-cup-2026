@@ -736,6 +736,7 @@ function ShareGraphic({
         <div>
           <div className="poster-footer-main">扫描生成你的冠军之路</div>
           <div className="poster-footer-sub">WORLD CUP 2026 PREDICTOR</div>
+          <div className="poster-footer-url">{shareUrl}</div>
         </div>
       </footer>
     </div>
