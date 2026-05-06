@@ -674,7 +674,7 @@ function ShareGraphic({
           <div className="poster-champion-label">CHAMPIONS</div>
         </div>
         <div className="poster-trophy">
-          <img className="poster-trophy-image" src="/world-cup-trophy.jpg" alt="" />
+          <img className="poster-trophy-image" src="/world-cup-trophy.png" alt="" />
         </div>
       </section>
       <footer className="poster-footer">
