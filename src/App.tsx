@@ -22,7 +22,7 @@ const initialThirdGroups: GroupKey[] = ["A", "B", "C", "D", "E", "F", "G", "H"]
 const storageVersion = 2
 const storageKey = "world-cup-2026-predictor-state"
 const shareUrl = "https://wc2026.egoist.dev"
-const twemojiSvgBase = "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg"
+const twemojiSvgBase = "/twemoji/svg"
 const teamMap = new Map(groups.flatMap((group) => group.teams.map((team) => [team.id, team])))
 const groupKeys = new Set(groups.map((group) => group.key))
 const stages: { id: Stage; label: string }[] = [
@@ -93,7 +93,7 @@ function twemojiCodepoint(team: Team) {
 }
 
 function FlagIcon({ team, className }: { team: Team; className?: string }) {
-  return <img className={cn("twemoji-flag", className)} src={`${twemojiSvgBase}/${twemojiCodepoint(team)}.svg`} alt="" crossOrigin="anonymous" loading="eager" draggable={false} />
+  return <img className={cn("twemoji-flag", className)} src={`${twemojiSvgBase}/${twemojiCodepoint(team)}.svg`} alt="" loading="eager" draggable={false} />
 }
 
 function getRankedTeams(ranking: Ranking, groupKey: GroupKey) {
