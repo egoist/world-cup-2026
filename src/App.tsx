@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Check, Download, RotateCcw, Trophy } from "lucide-react"
+import { ArrowDown, ArrowUp, Check, Download, LoaderCircle, RotateCcw, Trophy } from "lucide-react"
 import { type CSSProperties, type DragEvent, useEffect, useRef, useState } from "react"
 import QRCode from "qrcode"
 import { toPng } from "html-to-image"
@@ -229,6 +229,9 @@ function App() {
   const [winners, setWinners] = useState<Winners>(savedState.winners ?? {})
   const [dragging, setDragging] = useState<{ group: GroupKey; teamId: string } | null>(null)
   const [dropTarget, setDropTarget] = useState<{ group: GroupKey; teamId: string } | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportRequestId, setExportRequestId] = useState(0)
+  const [qrCodeUrl, setQrCodeUrl] = useState("")
   const exportRef = useRef<HTMLDivElement>(null)
 
   const champion = getTeam(winners[104])
@@ -253,6 +256,54 @@ function App() {
       } satisfies SavedState),
     )
   }, [ranking, thirdGroups, winners, stage])
+
+  useEffect(() => {
+    QRCode.toDataURL(shareUrl, {
+      errorCorrectionLevel: "M",
+      margin: 1,
+      scale: 8,
+      color: {
+        dark: "#16000a",
+        light: "#ffffff",
+      },
+    }).then(setQrCodeUrl)
+  }, [])
+
+  useEffect(() => {
+    if (!exportRequestId || stage !== "share" || !exportRef.current) return
+
+    let cancelled = false
+
+    const runExport = async () => {
+      const startedAt = performance.now()
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      if (cancelled || !exportRef.current) return
+
+      try {
+        const dataUrl = await toPng(exportRef.current, {
+          pixelRatio: 2,
+          cacheBust: true,
+          backgroundColor: "#7f002c",
+        })
+        const link = document.createElement("a")
+        link.download = "world-cup-2026-knockout-prediction.png"
+        link.href = dataUrl
+        link.click()
+      } catch (error) {
+        console.error("Failed to export image", error)
+      } finally {
+        const remaining = Math.max(0, 300 - (performance.now() - startedAt))
+        if (remaining) await new Promise((resolve) => window.setTimeout(resolve, remaining))
+        if (!cancelled) setIsExporting(false)
+      }
+    }
+
+    void runExport()
+
+    return () => {
+      cancelled = true
+    }
+  }, [exportRequestId, stage])
 
   const moveTeam = (groupKey: GroupKey, teamId: string, direction: -1 | 1) => {
     setRanking((current) => {
@@ -320,17 +371,11 @@ function App() {
     setStage("groups")
   }
 
-  const exportImage = async () => {
-    if (!exportRef.current) return
-    const dataUrl = await toPng(exportRef.current, {
-      pixelRatio: 2,
-      cacheBust: true,
-      backgroundColor: "#7f002c",
-    })
-    const link = document.createElement("a")
-    link.download = "world-cup-2026-knockout-prediction.png"
-    link.href = dataUrl
-    link.click()
+  const exportImage = () => {
+    if (isExporting) return
+    setIsExporting(true)
+    setStage("share")
+    setExportRequestId((id) => id + 1)
   }
 
   return (
@@ -351,8 +396,9 @@ function App() {
               <Button variant="secondary" onClick={reset}>
                 <RotateCcw size={16} /> 重置
               </Button>
-              <Button variant="outline" onClick={exportImage}>
-                <Download size={16} /> 导出图片
+              <Button variant="outline" onClick={exportImage} disabled={isExporting}>
+                {isExporting ? <LoaderCircle className="animate-spin" size={16} /> : <Download size={16} />}
+                {isExporting ? "正在导出" : "导出图片"}
               </Button>
             </div>
           </div>
@@ -477,7 +523,7 @@ function App() {
                 <h2>分享图预览</h2>
                 <p>导出按钮会把下方图面保存为 PNG。</p>
               </div>
-              <ShareGraphic refEl={exportRef} ranking={ranking} thirdGroups={thirdGroups} winners={winners} />
+              <ShareGraphic refEl={exportRef} ranking={ranking} thirdGroups={thirdGroups} winners={winners} qrCodeUrl={qrCodeUrl} />
             </div>
           )}
         </div>
@@ -630,26 +676,15 @@ function ShareGraphic({
   ranking,
   thirdGroups,
   winners,
+  qrCodeUrl,
 }: {
   refEl: React.RefObject<HTMLDivElement | null>
   ranking: Ranking
   thirdGroups: GroupKey[]
   winners: Winners
+  qrCodeUrl: string
 }) {
   const champion = getTeam(winners[104])
-  const [qrCodeUrl, setQrCodeUrl] = useState("")
-
-  useEffect(() => {
-    QRCode.toDataURL(shareUrl, {
-      errorCorrectionLevel: "M",
-      margin: 1,
-      scale: 8,
-      color: {
-        dark: "#16000a",
-        light: "#ffffff",
-      },
-    }).then(setQrCodeUrl)
-  }, [])
 
   return (
     <div ref={refEl} className="share-graphic">
@@ -678,7 +713,7 @@ function ShareGraphic({
         </div>
       </section>
       <footer className="poster-footer">
-        <img className="poster-qr" src={qrCodeUrl} alt="打开 wc2026.egoist.dev 的二维码" />
+        {qrCodeUrl ? <img className="poster-qr" src={qrCodeUrl} alt="打开 wc2026.egoist.dev 的二维码" /> : <div className="poster-qr" aria-hidden="true" />}
         <div>
           <div className="poster-footer-main">扫描生成你的冠军之路</div>
           <div className="poster-footer-sub">WORLD CUP 2026 PREDICTOR</div>
