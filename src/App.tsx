@@ -433,7 +433,6 @@ function App() {
                   <div key={group.key} className="panel">
                     <div className="mb-3 flex items-center justify-between">
                       <h3 className="text-base font-semibold">{group.key} 组</h3>
-                      <span className="text-xs text-muted-foreground">前二 + 可选第三</span>
                     </div>
                     <div className="grid gap-2">
                       {getRankedTeams(ranking, group.key).map((team, index) => (
