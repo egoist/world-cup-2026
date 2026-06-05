@@ -580,6 +580,19 @@ button {
     0 3px 8px rgb(32 0 14 / 0.58);
 }
 
+.poster-team-first-knockout-winner {
+  color: #ffeb3b;
+  text-shadow:
+    0 0 8px rgb(255 235 59 / 0.48),
+    0 3px 8px rgb(32 0 14 / 0.58);
+}
+
+.poster-team-first-knockout-winner .poster-team-flag {
+  filter:
+    drop-shadow(0 0 5px rgb(255 235 59 / 0.54))
+    drop-shadow(0 2px 5px rgb(32 0 14 / 0.52));
+}
+
 .poster-match-empty {
   opacity: 0.28;
 }

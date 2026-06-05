@@ -920,7 +920,15 @@ function PosterMatch({
     <div className={cn("poster-match", `poster-match-${match.round}`, side === "right" && "poster-match-right", !teams.length && "poster-match-empty")} style={style}>
       {teams.length ? (
         teams.map((team) => (
-          <div key={team.id} className={cn("poster-team", !showPair && "poster-team-flag-only", team.id === winner?.id && "poster-team-winner")}>
+          <div
+            key={team.id}
+            className={cn(
+              "poster-team",
+              !showPair && "poster-team-flag-only",
+              team.id === winner?.id && "poster-team-winner",
+              showPair && team.id === winner?.id && "poster-team-first-knockout-winner",
+            )}
+          >
             <FlagIcon team={team} className="poster-team-flag" />
             {showPair && <span>{getTeamName(team, locale)}</span>}
           </div>
